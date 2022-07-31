@@ -20,7 +20,7 @@ mod utils;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("start conduit server...");
-    std::env::set_var("RUST_LOG", "actix_web=trace");
+    // std::env::set_var("RUST_LOG", "actix_web=trace");
     env_logger::init();
 
     let state = {
@@ -30,7 +30,7 @@ async fn main() -> std::io::Result<()> {
 
     let port = env::var(constants::env_key::PORT).unwrap_or_else(|_| "8080".to_string());
 
-    HttpServer::new(move || {
+    let res = HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
             .app_data(actix_web::web::Data::new(state.clone()))
@@ -40,5 +40,15 @@ async fn main() -> std::io::Result<()> {
     })
     .bind(format!("0.0.0.0:{}", port))?
     .run()
-    .await
+    .await;
+
+    match res {
+        Ok(_) => {
+            Ok(())
+        },
+        Err(e) => {
+            eprintln!("{:?}", e);
+            Err(e)
+        }
+    }
 }

@@ -1,9 +1,10 @@
-FROM rust:1.56.1
-
+FROM docker.io/library/rust:1-alpine AS build
 WORKDIR /app
 COPY . .
+RUN apk add --no-cache musl-dev postgresql-dev
+RUN cargo build --release
 
-RUN rustc --version
-RUN cargo install --path .
-RUN cargo install cargo-watch
-RUN cargo install diesel_cli
+FROM docker.io/library/alpine:3.16.1
+RUN apk add --no-cache ca-certificates
+COPY --from=build /app/target/release/conduit /usr/bin/realworld
+ENTRYPOINT ["/usr/bin/realworld"]
