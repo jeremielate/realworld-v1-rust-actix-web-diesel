@@ -4,8 +4,11 @@ extern crate diesel;
 #[macro_use]
 extern crate log;
 
+use std::env;
+
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};
+
 mod app;
 mod constants;
 mod error;
@@ -25,6 +28,8 @@ async fn main() -> std::io::Result<()> {
         middleware::state::AppState { pool }
     };
 
+    let port = env::var(constants::env_key::PORT).unwrap_or_else(|_| "8080".to_string());
+
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
@@ -33,7 +38,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::auth::Authentication)
             .configure(routes::api)
     })
-    .bind(constants::BIND)?
+    .bind(format!("0.0.0.0:{}", port))?
     .run()
     .await
 }
